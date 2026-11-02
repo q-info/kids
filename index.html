@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Moez A. AbdelGawad | Empty Folder</title>
+<!-- Style borrowed AS IS from main index.html page. -->
+<style>
+:root{
+  --navy:#0b2748; --blue:#1768d5; --ink:#14213d; --muted:#5f6b7a;
+  --line:#e6ebf2; --soft:#f6f9fc; --white:#fff;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;color:var(--ink);background:#fff;line-height:1.6}
+a{color:var(--blue);text-decoration:none}
+.container{max-width:1180px;margin:auto;padding:0 28px}
+nav{position:sticky;top:0;z-index:20;background:rgba(11,39,72,.97);color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.navrow{height:68px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{font-weight:800;letter-spacing:.2px}
+//.links{display:flex;gap:24px;flex-wrap:wrap;font-size:14px}
+//.links a{color:#fff}
+.hero{padding:56px 0 34px;background:linear-gradient(180deg,#fff 0%,#fbfdff 100%)}
+.hero-grid{display:grid;grid-template-columns:170px 1fr;gap:34px;align-items:center}
+.avatar{width:160px;height:160px;border-radius:50%;background:linear-gradient(145deg,#d7e5f7,#9ebee5);display:grid;place-items:center;color:#0b2748;font-weight:800;font-size:38px;border:7px solid #fff;box-shadow:0 8px 30px rgba(11,39,72,.16)}
+h1{font-size:42px;line-height:1.1;margin:0 0 8px;color:var(--navy)}
+.subtitle{font-size:20px;color:var(--blue);font-weight:800;margin-bottom:14px}
+.affils{color:#344054;font-size:15px}
+.buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.btn{display:inline-block;padding:11px 16px;border:1px solid #c9d7eb;border-radius:8px;background:#fff;font-weight:700;font-size:14px}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+section{padding:48px 0;border-top:1px solid var(--line)}
+h2{font-size:26px;margin:0 0 24px;color:var(--navy)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px;box-shadow:0 8px 22px rgba(16,24,40,.04)}
+.tags{display:flex;flex-wrap:wrap;gap:10px}
+.tag{padding:8px 12px;border-radius:999px;background:#edf4ff;color:#194f9b;font-size:13px;font-weight:700}
+.research-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.research-item{text-align:center;padding:22px 12px}
+.icon{font-size:34px;margin-bottom:10px}
+.research-item b{display:block;margin-bottom:6px}
+.research-item span{font-size:13px;color:var(--muted)}
+.pub-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.pub h3{font-size:16px;line-height:1.35;color:#0b3a84;margin-top:0}
+.pub p{font-size:13px;color:var(--muted)}
+.project{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}
+.mock{border-radius:12px;background:#0b2748;padding:20px;min-height:300px;box-shadow:0 10px 28px rgba(11,39,72,.2)}
+.mock-inner{background:#fff;border-radius:8px;height:260px;display:grid;grid-template-columns:120px 1fr;overflow:hidden}
+.mock-side{background:#112f57}
+.mock-main{padding:18px}
+.circuit{height:120px;border:1px solid #dfe6ef;border-radius:6px;background:repeating-linear-gradient(0deg,#fff,#fff 22px,#f4f7fb 23px)}
+.bullets{padding-left:18px}
+.news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.latest-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.outreach-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.small{font-size:13px;color:var(--muted)}
+footer{background:var(--navy);color:#fff;padding:24px 0;margin-top:0}
+footer .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:13px}
+@media(max-width:900px){
+ .hero-grid,.grid2,.project{grid-template-columns:1fr}
+ .hero-grid{text-align:center}.avatar{margin:auto}.buttons{justify-content:center}
+ .research-grid{grid-template-columns:repeat(2,1fr)}
+ .pub-grid,.news-grid,.latest-grid,.outreach-grid{grid-template-columns:1fr 1fr}
+ //.links{display:none}
+}
+@media(max-width:560px){
+ h1{font-size:34px}.container{padding:0 18px}
+ .pub-grid,.news-grid,.research-grid,.latest-grid,.outreach-grid{grid-template-columns:1fr}
+}
+
+.menu {
+  display: flex;
+  gap: 25px;
+  list-style: none;
+}
+
+.menu a {
+  color: white;
+  text-decoration: none;
+}
+
+.burger {
+  display: none;
+  cursor: pointer;
+}
+
+.burger span {
+  display: block;
+  width: 28px;
+  height: 3px;
+  margin: 5px;
+  background: white;
+  transition: 0.3s;
+}
+
+//.links{display:flex;gap:24px;flex-wrap:wrap;font-size:14px}
+//.links a{color:#fff}
+
+@media (max-width: 900px) {
+  .burger {
+	display: block;
+  }
+
+  .menu {
+	display: none;
+	position: absolute;
+	top: 60px;
+	left: 0;
+	width: 100%;
+	background: navy;
+	flex-direction: column;
+	text-align: center;
+	padding: 20px 0;
+  }
+
+  .menu.active {
+	display: flex;
+  }
+
+  .menu li {
+	padding: 10px;
+  }
+}
+
+</style>
+
+  <script>
+    function toggleMenu() {
+      document.getElementById("menu").classList.toggle("active");
+    }
+  </script>
+
+	<script type="text/javascript"
+			src="https://www.statcounter.com/counter/counter.js"
+			async></script>
+	<script type="text/javascript">
+		var sc_project=12846908;
+		var sc_invisible=1;
+		var sc_security="d5f1f806";
+	</script>
+</head>
+<body>
+<nav>
+  <div class="container navrow">
+    <div class="brand">Moez A. AbdelGawad</div>
+
+    <div class="burger" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div class="menu" id="menu">
+      <a href="./index.html#about">About</a>
+      <a href="./index.html#research">Research</a>
+      <a href="./index.html#publications">Publications</a>
+      <a href="./index.html#qal">Projects (QAL)</a>
+      <a href="./index.html#teaching">Teaching</a>
+      <a href="./index.html#news">News</a>
+      <a href="./index.html#contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<br>
+    <!-- page content -->
+<footer>
+<div class="container row">
+  <span>© 2026 Moez A. AbdelGawad. All rights reserved.</span>
+  <span>Last updated: Oct. 16, 2026</span>
+</div>
+</footer>
+
+  </body>
+</html>
