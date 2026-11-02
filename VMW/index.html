@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>VR Multiplication Table</title>
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden;
+    background: #060912; color: #dbe6ff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  canvas { display: block; }
+
+  #info {
+    position: fixed; top: 14px; left: 14px; z-index: 10;
+    padding: 12px 16px; max-width: 260px;
+    background: rgba(14, 22, 42, .78);
+    border: 1px solid rgba(110, 150, 230, .25);
+    border-radius: 14px;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    font-size: 13px; line-height: 1.55; color: #a9bce0;
+    pointer-events: none; user-select: none;
+  }
+  #info b { color: #8ef7c4; font-size: 14px; }
+
+  #crosshair {
+    position: fixed; left: 50%; top: 50%; width: 7px; height: 7px;
+    margin: -3.5px 0 0 -3.5px; border-radius: 50%;
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 0 12px rgba(120,180,255,.95);
+    pointer-events: none; z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div id="info">
+  <b>VR Multiplication Table</b><br>
+  Drag to look around � Aim at a cube or tower<br>
+  Point at the floating console to change numbers.
+</div>
+<div id="crosshair"></div>
+
+<!--script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script-->
+
+<script src="three.min.js"></script>
+<script src="VRButton.js"></script>
+
+<script type="module">
+// import * as THREE from 'three';
+// import { VRButton } from 'three/addons/webxr/VRButton.js';
+
+/* ???????????????????????????????????????????????????????????
+   1 � RENDERER � SCENE � CAMERA
+   ??????????????????????????????????????????????????????????? */
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.xr.enabled = true;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x060912);
+scene.fog = new THREE.FogExp2(0x060912, 0.028);
+
+const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.05, 120);
+camera.position.set(0, 1.6, 0);
+camera.rotation.order = 'YXZ';
+scene.add(camera);
+
+/* ???????????????????????????????????????????????????????????
+   2 � LIGHTS � FLOOR � AMBIENCE
+   ??????????????????????????????????????????????????????????? */
+scene.add(new THREE.HemisphereLight(0x88aaff, 0x080c16, 1.5));
+
+const sun = new THREE.DirectionalLight(0xffffff, 2.3);
+sun.position.set(4, 8, 3);
+sun.target.position.set(0, 0, -3.5);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.near = 0.5;
+sun.shadow.camera.far = 26;
+sun.shadow.camera.left = -6;
+sun.shadow.camera.right = 6;
+sun.shadow.camera.top = 6;
+sun.shadow.camera.bottom = -6;
+sun.shadow.bias = -0.0012;
+sun.shadow.normalBias = 0.02;
+scene.add(sun, sun.target);
+
+const rim = new THREE.DirectionalLight(0x5a7dff, 0.9);
+rim.position.set(-6, 5, -6);
+scene.add(rim);
+
+const floor = new THREE.Mesh(
+  new THREE.CircleGeometry(34, 64).rotateX(-Math.PI / 2),
+  new THREE.MeshStandardMaterial({ color: 0x0b1122, roughness: 1, metalness: 0 })
+);
+floor.receiveShadow = true;
+scene.add(floor);
+
+const grid = new THREE.GridHelper(34, 68, 0x2d4a80, 0x16233d);
+grid.position.y = 0.002;
+grid.material.transparent = true;
+grid.material.opacity = 0.4;
+scene.add(grid);
+
+// starfield for depth cues
+(function stars() {
+  const N = 420, pos = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const r = 12 + Math.random() * 22;
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    pos[i * 3]     = r * Math.sin(ph) * Math.cos(th);
+    pos[i * 3 + 1] = Math.abs(r * Math.cos(ph)) * 0.6 + 1;
+    pos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({
+    color: 0x7fa8ff, size: 0.07, transparent: true, opacity: 0.75, depthWrite: false
+  })));
+})();
+
+/* ???????????????????????????????????????????????????????????
+   3 � STATE
+   ??????????????????????????????????????????????????????????? */
+const world = new THREE.Group();       // everything that gets rebuilt
+scene.add(world);
+
+const state = { mode: 'array', a: 4, b: 5 };
+
+const animItems    = [];   // meshes with a pop-in animation
+const interactables= [];   // meshes the raycaster can hit
+const allMats      = [];   // every material (for hover resets)
+const labels       = [];   // CanvasText labels (for texture disposal)
+let rowMats        = [];   // array mode: one material per group/row
+let equationLabel  = null;
+let hoverLabel     = null;
+let lastCount      = -1;
+let startTime      = 0;
+
+const clock = new THREE.Clock();
+
+const easeOutBack = x => {
+  const c1 = 1.70158, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+};
+
+/* ???????????????????????????????????????????????????????????
+   4 � CANVAS-TEXT SPRITE LABEL
+   ??????????????????????????????????????????????????????????? */
+class Label {
+  constructor({ worldWidth = 1, canvasW = 512, canvasH = 128, color = '#ffffff' } = {}) {
+    this.canvas = document.createElement('canvas');
+    this.canvas.width  = canvasW;
+    this.canvas.height = canvasH;
+    this.ctx = this.canvas.getContext('2d');
+
+    this.texture = new THREE.CanvasTexture(this.canvas);
+    this.texture.colorSpace = THREE.SRGBColorSpace;
+    this.texture.anisotropy = 4;
+
+    this.sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: this.texture, transparent: true, depthWrite: false, depthTest: true
+    }));
+    this.sprite.scale.set(worldWidth, worldWidth * canvasH / canvasW, 1);
+    this.sprite.renderOrder = 5;
+
+    this.color = color;
+    this._last = null;
+  }
+  set(text) {
+    if (text === this._last) return;
+    this._last = text;
+
+    const { ctx, canvas } = this;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let size = Math.round(canvas.height * 0.58);
+    ctx.font = `800 ${size}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+    while (ctx.measureText(text).width > canvas.width * 0.9 && size > 12) {
+      size -= 2;
+      ctx.font = `800 ${size}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+    }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = this.color;
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    this.texture.needsUpdate = true;
+  }
+  dispose() {
+    this.texture.dispose();
+    this.sprite.material.dispose();
+  }
+}
+
+/* ???????????????????????????????????????????????????????????
+   5 � CLEANUP
+   ??????????????????????????????????????????????????????????? */
+function clearWorld() {
+  const geos = new Set(), mats = new Set();
+  world.traverse(o => {
+    if (o.geometry) geos.add(o.geometry);
+    if (o.material) mats.add(o.material);
+  });
+  geos.forEach(g => g.dispose());
+  mats.forEach(m => m.dispose());
+  world.clear();
+
+  labels.forEach(l => l.dispose());
+
+  labels.length = 0;
+  animItems.length = 0;
+  interactables.length = 0;
+  allMats.length = 0;
+  rowMats = [];
+  equationLabel = null;
+  hoverLabel = null;
+  lastCount = -1;
+}
+
+/* ???????????????????????????????????????????????????????????
+   6 � MODE A � ARRAY  (a groups � b cubes)
+   ??????????????????????????????????????????????????????????? */
+function buildArray(a, b) {
+  const STEP_X = 0.26;    // spacing between cubes inside a group
+  const STEP_Y = 0.32;    // spacing between groups (bigger ? visual grouping)
+  const CUBE   = 0.20;
+
+  const extentX = (b - 1) * STEP_X + CUBE;
+  const extentY = (a - 1) * STEP_Y + CUBE;
+  const s = Math.min(1, 1.95 / Math.max(extentX, extentY, 0.01));
+
+  const root = new THREE.Group();
+  root.position.set(0, 1.55, -2.4);
+  root.scale.setScalar(s);
+  world.add(root);
+
+  const geo = new THREE.BoxGeometry(CUBE, CUBE, CUBE);
+  const originX = -extentX / 2 + CUBE / 2;
+  const originY = -extentY / 2 + CUBE / 2;
+
+  for (let r = 0; r < a; r++) {
+    const t = a === 1 ? 0 : r / (a - 1);
+    const hue = (0.60 - t * 0.52 + 1) % 1;
+
+    const mat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color().setHSL(hue, 0.78, 0.60),
+      roughness: 0.30, metalness: 0.22,
+      emissive: 0xffffff, emissiveIntensity: 0
+    });
+    mat.userData.base = 0;
+    rowMats.push(mat);
+    allMats.push(mat);
+
+    for (let c = 0; c < b; c++) {
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(originX + c * STEP_X, originY + (a - 1 - r) * STEP_Y, 0);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      m.userData = {
+        type: 'cube',
+        row: r,
+        delay: (r * b + c) * 0.02,
+        from: new THREE.Vector3(0.001, 0.001, 0.001),
+        to:   new THREE.Vector3(1, 1, 1)
+      };
+      m.scale.copy(m.userData.from);
+
+      root.add(m);
+      animItems.push(m);
+      interactables.push(m);
+    }
+  }
+
+  // Equation banner floating above the array
+  equationLabel = new Label({ worldWidth: 1.7, color: '#8ef7c4' });
+  equationLabel.set(`${a} � ${b} = 0`);
+  equationLabel.sprite.position.set(0, 1.55 + (extentY * s) / 2 + 0.34, -2.4);
+  world.add(equationLabel.sprite);
+  labels.push(equationLabel);
+}
+
+/* ???????????????????????????????????????????????????????????
+   7 � MODE B � TABLE  (12 � 12 towers, height = product)
+   ??????????????????????????????????????????????????????????? */
+function buildTable() {
+  const N = 12, STEP = 0.25, W = 0.20, MAXH = 2.05;
+  const span = (N - 1) * STEP;
+  const CZ = -4.6;
+
+  const geo = new THREE.BoxGeometry(W, 1, W);
+  geo.translate(0, 0.5, 0);        // pivot at the base ? grows upward
+
+  for (let i = 1; i <= N; i++) {
+    for (let j = 1; j <= N; j++) {
+      const p = i * j;
+      const h = 0.12 + (p / (N * N)) * MAXH;
+      const hue = (0.62 - (p / (N * N)) * 0.62 + 1) % 1;
+      const diag = i === j;
+
+      const mat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color().setHSL(hue, 0.72, diag ? 0.68 : 0.52),
+        roughness: 0.34, metalness: 0.22,
+        emissive: 0xffffff, emissiveIntensity: 0
+      });
+      mat.userData.base = 0;
+      allMats.push(mat);
+
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(-span / 2 + (i - 1) * STEP, 0, CZ - span / 2 + (j - 1) * STEP);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      m.userData = {
+        type: 'tower', i, j, p, h,
+        delay: Math.hypot(i - 6.5, j - 6.5) * 0.045,
+        from: new THREE.Vector3(0.001, 0.001, 0.001),
+        to:   new THREE.Vector3(1, h, 1)
+      };
+      m.scale.copy(m.userData.from);
+
+      world.add(m);
+      animItems.push(m);
+      interactables.push(m);
+    }
+  }
+
+  // One shared label that hops to whichever tower you look at
+  hoverLabel = new Label({ worldWidth: 1.15, color: '#8ef7c4' });
+  hoverLabel.sprite.visible = false;
+  world.add(hoverLabel.sprite);
+  labels.push(hoverLabel);
+}
+
+/* ???????????????????????????????????????????????????????????
+   8 � IN-WORLD CONTROL CONSOLE
+   ??????????????????????????????????????????????????????????? */
+function buildConsole() {
+  const panel = new THREE.Group();
+  panel.position.set(0, 1.0, -1.3);
+  panel.rotation.x = -0.95;              // tilt up toward the player
+  world.add(panel);
+
+  const back = new THREE.Mesh(
+    new THREE.BoxGeometry(1.2, 0.92, 0.03),
+    new THREE.MeshStandardMaterial({
+      color: 0x0e1729, roughness: 0.9, metalness: 0.1,
+      emissive: 0x14315f, emissiveIntensity: 0.55
+    })
+  );
+  back.position.z = -0.045;
+  panel.add(back);
+
+  const addBtn = (x, y, w, h, text, onPress, hot = false) => {
+    const g = new THREE.Group();
+    g.position.set(x, y, 0);
+
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(w, h, 0.05),
+      new THREE.MeshStandardMaterial({
+        color: hot ? 0x1d5a4a : 0x24407a,
+        roughness: 0.4, metalness: 0.3,
+        emissive: hot ? 0x1fd39b : 0x2f6bff,
+        emissiveIntensity: 0.38
+      })
+    );
+    mesh.material.userData.base = 0.38;
+    mesh.userData = { type: 'button', onPress };
+    g.add(mesh);
+
+    const lbl = new Label({ worldWidth: Math.min(w * 0.84, 0.72), color: '#ffffff' });
+    lbl.set(text);
+    lbl.sprite.position.z = 0.04;
+    g.add(lbl.sprite);
+
+    panel.add(g);
+    interactables.push(mesh);
+    allMats.push(mesh.material);
+    labels.push(lbl);
+  };
+
+  // ?? Row 1 : number of groups ??????????????????????????
+  addBtn(-0.42, 0.28, 0.14, 0.14, '?', () => change('a', -1));
+  addBtn( 0.42, 0.28, 0.14, 0.14, '+', () => change('a',  1));
+
+  const gLbl = new Label({ worldWidth: 0.56, color: '#9fe8ff' });
+  gLbl.set(`Groups: ${state.a}`);
+  gLbl.sprite.position.set(0, 0.28, 0.03);
+  panel.add(gLbl.sprite);
+  labels.push(gLbl);
+
+  // ?? Row 2 : cubes per group ???????????????????????????
+  addBtn(-0.42, 0.0, 0.14, 0.14, '?', () => change('b', -1));
+  addBtn( 0.42, 0.0, 0.14, 0.14, '+', () => change('b',  1));
+
+  const bLbl = new Label({ worldWidth: 0.56, color: '#9fe8ff' });
+  bLbl.set(`Each: ${state.b}`);
+  bLbl.sprite.position.set(0, 0.0, 0.03);
+  panel.add(bLbl.sprite);
+  labels.push(bLbl);
+
+  // ?? Row 3 : mode switch ???????????????????????????????
+  addBtn(0, -0.30, 1.0, 0.18,
+    state.mode === 'array' ? 'Show the 12 � 12 Table' : 'Back to the Array',
+    () => {
+      state.mode = state.mode === 'array' ? 'table' : 'array';
+      rebuild();
+    },
+    true
+  );
+}
+
+/* ???????????????????????????????????????????????????????????
+   9 � BUILD / REBUILD
+   ??????????????????????????????????????????????????????????? */
+function change(key, delta) {
+  state[key] = Math.min(12, Math.max(1, state[key] + delta));
+  rebuild();
+}
+
+function rebuild() {
+  clearWorld();
+
+  if (state.mode === 'array') buildArray(state.a, state.b);
+  else                        buildTable();
+
+  buildConsole();               // always last so buttons sit on top
+
+  startTime = clock.getElapsedTime();
+  lastCount = -1;
+}
+
+/* ???????????????????????????????????????????????????????????
+   10 � XR CONTROLLERS
+   ??????????????????????????????????????????????????????????? */
+const controllers = [];
+
+for (let i = 0; i < 2; i++) {
+  const c = renderer.xr.getController(i);
+  c.userData.gamepad = null;
+  c.userData.turning = false;
+
+  // ray beam
+  const rayGeo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, 0, -1)
+  ]);
+  const ray = new THREE.Line(rayGeo, new THREE.LineBasicMaterial({
+    color: 0x6fa8ff, transparent: true, opacity: 0.75
+  }));
+  ray.scale.z = 3;
+  c.add(ray);
+  c.userData.ray = ray;
+
+  // grip dot
+  const dot = new THREE.Mesh(
+    new THREE.SphereGeometry(0.012, 12, 8),
+    new THREE.MeshBasicMaterial({ color: 0xa8c8ff })
+  );
+  c.add(dot);
+
+  c.addEventListener('connected', e => { c.userData.gamepad = e.data.gamepad; });
+  c.addEventListener('disconnected', () => { c.userData.gamepad = null; });
+
+  c.addEventListener('selectstart', () => {
+    const hit = pickFromController(c);
+    if (hit) activate(hit);
+    const haptics = c.userData.gamepad?.hapticActuators;
+    if (haptics && haptics.length) haptics[0].pulse(0.7, 55).catch?.(() => {});
+  });
+
+  scene.add(c);
+  controllers.push(c);
+}
+
+/* ???????????????????????????????????????????????????????????
+   11 � RAYCASTING
+   ??????????????????????????????????????????????????????????? */
+const _raycaster = new THREE.Raycaster();
+_raycaster.far = 6;
+
+const _m4  = new THREE.Matrix4();
+const _o   = new THREE.Vector3();
+const _d   = new THREE.Vector3();
+
+function pickFrom(origin, dir) {
+  _raycaster.set(origin, dir);
+  const hits = _raycaster.intersectObjects(interactables, false);
+  return hits[0] || null;
+}
+
+function pickFromController(c) {
+  _m4.identity().extractRotation(c.matrixWorld);
+  _o.setFromMatrixPosition(c.matrixWorld);
+  _d.set(0, 0, -1).applyMatrix4(_m4).normalize();
+  return pickFrom(_o, _d);
+}
+
+function pickFromCamera() {
+  _o.setFromMatrixPosition(camera.matrixWorld);
+  _d.set(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+  return pickFrom(_o, _d);
+}
+
+function activate(hit) {
+  const ud = hit.object.userData;
+  if (ud.type === 'button') ud.onPress();
+}
+
+/* ???????????????????????????????????????????????????????????
+   12 � DESKTOP LOOK / CLICK
+   ??????????????????????????????????????????????????????????? */
+let yaw = 0, pitch = 0;
+let dragging = false, lastX = 0, lastY = 0, dragDist = 0;
+
+const el = renderer.domElement;
+
+el.addEventListener('pointerdown', e => {
+  if (renderer.xr.isPresenting) return;
+  dragging = true;
+  dragDist = 0;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  el.setPointerCapture(e.pointerId);
+});
+
+el.addEventListener('pointermove', e => {
+  if (!dragging || renderer.xr.isPresenting) return;
+  const dx = e.clientX - lastX;
+  const dy = e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  dragDist += Math.abs(dx) + Math.abs(dy);
+  yaw   -= dx * 0.0042;
+  pitch -= dy * 0.0042;
+  pitch = Math.max(-1.25, Math.min(1.25, pitch));
+});
+
+el.addEventListener('pointerup', e => {
+  if (!dragging) return;
+  dragging = false;
+  if (dragDist < 8 && !renderer.xr.isPresenting) {
+    const hit = pickFromCamera();
+    if (hit) activate(hit);
+  }
+});
+
+/* ???????????????????????????????????????????????????????????
+   13 � ANIMATION LOOP
+   ??????????????????????????????????????????????????????????? */
+function animate() {
+  const t = clock.getElapsedTime();
+
+  /* ---- desktop camera ---- */
+  if (!renderer.xr.isPresenting) {
+    camera.rotation.set(pitch, yaw, 0, 'YXZ');
+  }
+
+  /* ---- snap turn (right thumbstick) ---- */
+  if (renderer.xr.isPresenting) {
+    for (const c of controllers) {
+      const gp = c.userData.gamepad;
+      if (!gp || gp.axes.length < 4) continue;
+      const ax = gp.axes[2];
+      if (Math.abs(ax) > 0.75) {
+        if (!c.userData.turning) {
+          c.userData.turning = true;
+          world.rotation.y -= Math.sign(ax) * Math.PI / 6;   // 30� snap
+        }
+      } else if (Math.abs(ax) < 0.3) {
+        c.userData.turning = false;
+      }
+    }
+  }
+
+  /* ---- pop-in animation + live counting ---- */
+  let count = 0;
+  for (const it of animItems) {
+    const x = Math.min(Math.max((t - startTime - it.userData.delay) / 0.32, 0), 1);
+    const s = x <= 0 ? 0 : easeOutBack(x);
+    it.scale.copy(it.userData.from).lerp(it.userData.to, s);
+    if (x >= 1) count++;
+  }
+
+  if (state.mode === 'array' && equationLabel && count !== lastCount) {
+    lastCount = count;
+    equationLabel.set(`${state.a} � ${state.b} = ${count}`);
+  }
+
+  /* ---- hover / highlight ---- */
+  for (const m of allMats) m.emissiveIntensity = m.userData.base ?? 0;
+
+  const rays = [];
+  if (renderer.xr.isPresenting) {
+    for (const c of controllers) rays.push({ c, hit: pickFromController(c) });
+  } else {
+    rays.push({ c: null, hit: pickFromCamera() });
+  }
+
+  let anyTowerHovered = false;
+
+  for (const r of rays) {
+    // controller beam length
+    if (r.c) r.c.userData.ray.scale.z = r.hit ? Math.min(r.hit.distance, 6) : 3;
+
+    const h = r.hit;
+    if (!h) continue;
+    const o = h.object;
+    const ud = o.userData;
+
+    if (ud.type === 'button') {
+      o.material.emissiveIntensity = 1.7;
+    } else if (ud.type === 'cube') {
+      const mat = rowMats[ud.row];
+      if (mat) mat.emissiveIntensity = 0.6;
+    } else if (ud.type === 'tower') {
+      anyTowerHovered = true;
+      o.material.emissiveIntensity = 0.85;
+      if (hoverLabel) {
+        hoverLabel.set(`${ud.i} � ${ud.j} = ${ud.p}`);
+        hoverLabel.sprite.position.set(o.position.x, ud.h + 0.28, o.position.z);
+        hoverLabel.sprite.visible = true;
+      }
+    }
+  }
+
+  if (hoverLabel && !anyTowerHovered) hoverLabel.sprite.visible = false;
+
+  renderer.render(scene, camera);
+}
+
+/* ???????????????????????????????????????????????????????????
+   14 � XR SESSION EVENTS
+   ??????????????????????????????????????????????????????????? */
+renderer.xr.addEventListener('sessionstart', () => {
+  document.getElementById('info').style.display = 'none';
+  document.getElementById('crosshair').style.display = 'none';
+});
+renderer.xr.addEventListener('sessionend', () => {
+  document.getElementById('info').style.display = 'block';
+  document.getElementById('crosshair').style.display = 'block';
+});
+
+/* ???????????????????????????????????????????????????????????
+   15 � RESIZE � START
+   ??????????????????????????????????????????????????????????? */
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+document.body.appendChild(VRButton.createButton(renderer));
+
+rebuild();
+renderer.setAnimationLoop(animate);
+</script>
+</body>
+</html>
