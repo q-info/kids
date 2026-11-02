@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Multiplication World</title>
+
+<style>
+
+:root {
+    --background:#10182d;
+    --sidebar:#17243e;
+    --panel:#1d2d4b;
+    --panel2:#293c5e;
+    --accent:#42cdf5;
+    --yellow:#ffd166;
+    --green:#50dfa0;
+    --text:#ffffff;
+    --muted:#aabbd3;
+}
+
+* {
+    box-sizing:border-box;
+}
+
+body {
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:var(--background);
+    color:var(--text);
+}
+
+button,input,select {
+    font:inherit;
+}
+
+button {
+    cursor:pointer;
+    border:0;
+    border-radius:10px;
+    padding:12px 17px;
+    font-weight:bold;
+    background:var(--accent);
+    color:#10243b;
+    min-height:44px;
+}
+
+button:hover {
+    filter:brightness(1.12);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline:3px solid var(--yellow);
+    outline-offset:3px;
+}
+
+select,input {
+    padding:12px;
+    border-radius:9px;
+    border:1px solid #526987;
+    background:var(--panel2);
+    color:white;
+    min-height:44px;
+}
+
+header {
+    height:75px;
+    background:var(--sidebar);
+    border-bottom:1px solid #334663;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 25px;
+    gap:12px;
+}
+
+.logo {
+    color:var(--accent);
+    font-weight:900;
+    font-size:23px;
+}
+
+.header-right {
+    display:flex;
+    gap:15px;
+    align-items:center;
+}
+
+.layout {
+    display:grid;
+    grid-template-columns:230px minmax(0,1fr);
+    min-height:calc(100vh - 75px);
+}
+
+aside {
+    background:var(--sidebar);
+    padding:20px 13px;
+    border-right:1px solid #334663;
+}
+
+.nav-button {
+    display:block;
+    width:100%;
+    text-align:left;
+    background:transparent;
+    color:var(--muted);
+    margin-bottom:9px;
+}
+
+.nav-button.active {
+    background:#294b70;
+    color:white;
+}
+
+main {
+    max-width:1250px;
+    width:100%;
+    padding:25px;
+    margin:auto;
+    min-width:0;
+}
+
+.page {
+    display:none;
+}
+
+.page.active {
+    display:block;
+}
+
+.panel {
+    background:var(--panel);
+    border:1px solid #344968;
+    padding:20px;
+    border-radius:16px;
+    margin-bottom:20px;
+}
+
+.panel h2 {
+    margin-top:0;
+}
+
+.muted {
+    color:var(--muted);
+}
+
+.stats {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:15px;
+}
+
+.stat {
+    background:var(--panel2);
+    padding:18px;
+    border-radius:13px;
+}
+
+.stat strong {
+    display:block;
+    color:var(--yellow);
+    font-size:29px;
+    margin-top:8px;
+}
+
+#world {
+    width:100%;
+    height:390px;
+    background:linear-gradient(140deg,#142c50,#315c83);
+    border-radius:13px;
+    overflow:hidden;
+}
+
+#world canvas {
+    display:block;
+    width:100%;
+    height:100%;
+}
+
+.controls {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:18px;
+}
+
+.controls label {
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.equation {
+    text-align:center;
+    font-size:36px;
+    font-weight:900;
+    color:var(--yellow);
+    padding:20px;
+}
+
+.table-grid {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin-top:20px;
+}
+
+.table-item {
+    padding:15px;
+    background:var(--panel2);
+    border-radius:10px;
+    text-align:center;
+    font-weight:bold;
+}
+
+.quiz-box {
+    background:var(--panel2);
+    padding:25px;
+    border-radius:15px;
+    text-align:center;
+}
+
+.question {
+    font-size:45px;
+    color:var(--yellow);
+    font-weight:900;
+    margin:20px;
+}
+
+.feedback {
+    min-height:30px;
+    color:var(--green);
+    margin-top:15px;
+}
+
+.progress {
+    height:14px;
+    background:#344968;
+    border-radius:20px;
+    overflow:hidden;
+    margin:15px 0;
+}
+
+.progress-fill {
+    background:var(--green);
+    height:100%;
+    width:0;
+    transition:width .3s;
+}
+
+.grid-two {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:15px;
+}
+
+.achievement {
+    padding:15px;
+    background:var(--panel2);
+    border-radius:10px;
+    margin-bottom:10px;
+}
+
+footer {
+    text-align:center;
+    color:var(--muted);
+    padding:25px;
+}
+
+[hidden] {
+    display:none!important;
+}
+
+body.rtl {
+    direction:rtl;
+}
+
+body.rtl .nav-button {
+    text-align:right;
+}
+
+body.rtl aside {
+    border-right:0;
+    border-left:1px solid #334663;
+}
+
+@media(max-width:750px) {
+
+    .layout {
+        grid-template-columns:1fr;
+    }
+
+    aside {
+        display:flex;
+        overflow-x:auto;
+        gap:5px;
+        padding:10px;
+    }
+
+    .nav-button {
+        min-width:max-content;
+        width:auto;
+        margin:0;
+    }
+
+    main {
+        padding:14px;
+    }
+
+    .stats {
+        grid-template-columns:1fr;
+    }
+
+    .table-grid {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .grid-two {
+        grid-template-columns:1fr;
+    }
+
+    #world {
+        height:300px;
+    }
+
+    header {
+        padding:10px;
+        height:auto;
+    }
+
+    .logo {
+        font-size:17px;
+    }
+
+    .question {
+        font-size:34px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        🌍 Multiplication World
+    </div>
+
+    <div class="header-right">
+
+        <span>⭐ <strong id="headerStars">0</strong></span>
+
+        <button id="languageButton">
+            العربية
+        </button>
+
+    </div>
+
+</header>
+
+
+<div class="layout">
+
+<aside>
+
+    <button class="nav-button active" data-page="home"
+        data-i18n="home">
+        🏠 Learning World
+    </button>
+
+    <button class="nav-button" data-page="visual"
+        data-i18n="visual">
+        🧊 3D Mathematics
+    </button>
+
+    <button class="nav-button" data-page="tables"
+        data-i18n="tables">
+        🔢 Multiplication Tables
+    </button>
+
+    <button class="nav-button" data-page="game"
+        data-i18n="game">
+        🎮 Math Games
+    </button>
+
+    <button class="nav-button" data-page="progress"
+        data-i18n="progress">
+        🏆 My Progress
+    </button>
+
+</aside>
+
+
+<main>
+
+<!-- HOME -->
+
+<section id="home" class="page active">
+
+    <h1 data-i18n="welcome">
+        Welcome, Math Explorer! 🚀
+    </h1>
+
+    <p class="muted" data-i18n="welcomeText">
+        Discover mathematics through imagination and play.
+    </p>
+
+    <div class="stats">
+
+        <div class="stat">
+            <span data-i18n="questions">Questions answered</span>
+            <strong id="homeQuestions">0</strong>
+        </div>
+
+        <div class="stat">
+            <span data-i18n="correct">Correct answers</span>
+            <strong id="homeCorrect">0</strong>
+        </div>
+
+        <div class="stat">
+            <span data-i18n="stars">Stars earned</span>
+            <strong id="homeStars">0</strong>
+        </div>
+
+    </div>
+
+    <div class="panel" style="margin-top:22px">
+
+        <h2 data-i18n="adventure">
+            🌟 Start Your Adventure
+        </h2>
+
+        <div class="grid-two">
+
+            <button onclick="showPage('visual')" data-i18n="explore">
+                Explore 3D
+            </button>
+
+            <button onclick="showPage('tables')" data-i18n="learnTables">
+                Learn Tables
+            </button>
+
+            <button onclick="showPage('game')" data-i18n="play">
+                Play Games
+            </button>
+
+            <button onclick="showPage('progress')" data-i18n="myProgress">
+                My Progress
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- 3D LEARNING -->
+
+<section id="visual" class="page">
+
+    <h1 data-i18n="visualTitle">
+        🧊 Visual Multiplication
+    </h1>
+
+    <p class="muted" data-i18n="visualText">
+        Discover how equal groups create multiplication.
+    </p>
+
+    <div class="panel">
+
+        <div id="world"></div>
+
+        <div class="controls">
+
+            <label>
+                <span data-i18n="groups">Number of groups</span>
+                <select id="groupSelect"></select>
+            </label>
+
+            <label>
+                <span data-i18n="each">Objects per group</span>
+                <select id="eachSelect"></select>
+            </label>
+
+            <button id="updateWorld" data-i18n="explore">
+                Explore
+            </button>
+
+        </div>
+
+        <div class="equation" id="equation">
+            3 × 4 = 12
+        </div>
+
+        <p id="addition" style="text-align:center">
+            4 + 4 + 4 = 12
+        </p>
+
+        <p id="lesson" class="muted" style="text-align:center">
+            Three groups of four objects make twelve.
+        </p>
+
+        <p class="muted" style="text-align:center" data-i18n="drag">
+            Drag the scene to rotate the objects.
+        </p>
+
+    </div>
+
+</section>
+
+
+<!-- TABLES -->
+
+<section id="tables" class="page">
+
+    <h1 data-i18n="tableTitle">
+        🔢 Multiplication Tables
+    </h1>
+
+    <div class="panel">
+
+        <label data-i18n="chooseTable">
+            Choose a multiplication table:
+        </label>
+
+        <select id="tableSelect"></select>
+
+        <div class="table-grid" id="tableOutput"></div>
+
+    </div>
+
+</section>
+
+
+<!-- GAMES -->
+
+<section id="game" class="page">
+
+    <h1 data-i18n="gameTitle">
+        🎮 Multiplication Challenge
+    </h1>
+
+    <div class="panel">
+
+        <div class="quiz-box">
+
+            <p class="muted" data-i18n="solve">
+                Solve the multiplication question!
+            </p>
+
+            <div class="question" id="question">
+                3 × 4 = ?
+            </div>
+
+            <input
+                id="answer"
+                type="number"
+                min="0"
+                max="144"
+                placeholder="Your answer"
+                aria-label="Your answer"
+            >
+
+            <br><br>
+
+            <button id="checkButton" data-i18n="check">
+                Check Answer
+            </button>
+
+            <button id="nextButton" data-i18n="next">
+                Next Question
+            </button>
+
+            <div class="feedback" id="feedback"
+                aria-live="polite">
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <h2 data-i18n="score">⭐ Your Score</h2>
+
+        <div class="equation" id="score">
+            0
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- PROGRESS -->
+
+<section id="progress" class="page">
+
+    <h1 data-i18n="progressTitle">
+        🏆 Learning Progress
+    </h1>
+
+    <div class="panel">
+
+        <div class="stats">
+
+            <div class="stat">
+                <span data-i18n="questions">Questions</span>
+                <strong id="progressQuestions">0</strong>
+            </div>
+
+            <div class="stat">
+                <span data-i18n="correct">Correct</span>
+                <strong id="progressCorrect">0</strong>
+            </div>
+
+            <div class="stat">
+                <span data-i18n="stars">Stars</span>
+                <strong id="progressStars">0</strong>
+            </div>
+
+        </div>
+
+        <h3 data-i18n="accuracy">Accuracy</h3>
+
+        <div class="progress">
+            <div class="progress-fill" id="accuracyBar"></div>
+        </div>
+
+        <p id="accuracyText">0%</p>
+
+        <h3 data-i18n="achievements">Achievements</h3>
+
+        <div id="achievementList"></div>
+
+    </div>
+
+    <button id="resetButton" data-i18n="reset">
+        Reset Progress
+    </button>
+
+</section>
+
+</main>
+
+</div>
+
+
+<footer>
+    Multiplication World © 2026
+    <br>
+    Learn · Explore · Play
+</footer>
+
+
+<script type="module">
+
+import * as THREE from
+'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+
+
+// ==========================================
+// LANGUAGE SYSTEM
+// ==========================================
+
+const translations = {
+
+en: {
+
+home:"🏠 Learning World",
+visual:"🧊 3D Mathematics",
+tables:"🔢 Multiplication Tables",
+game:"🎮 Math Games",
+progress:"🏆 My Progress",
+
+welcome:"Welcome, Math Explorer! 🚀",
+welcomeText:"Discover mathematics through imagination and play.",
+
+questions:"Questions answered",
+correct:"Correct answers",
+stars:"Stars earned",
+
+adventure:"🌟 Start Your Adventure",
+explore:"Explore 3D",
+learnTables:"Learn Tables",
+play:"Play Games",
+myProgress:"My Progress",
+
+visualTitle:"🧊 Visual Multiplication",
+visualText:"Discover how equal groups create multiplication.",
+
+groups:"Number of groups",
+each:"Objects per group",
+drag:"Drag the scene to rotate the objects.",
+
+tableTitle:"🔢 Multiplication Tables",
+chooseTable:"Choose a multiplication table:",
+
+gameTitle:"🎮 Multiplication Challenge",
+solve:"Solve the multiplication question!",
+
+check:"Check Answer",
+next:"Next Question",
+score:"⭐ Your Score",
+
+progressTitle:"🏆 Learning Progress",
+accuracy:"Accuracy",
+achievements:"Achievements",
+reset:"Reset Progress",
+
+correctMessage:"🎉 Excellent! Correct answer!",
+wrongMessage:"Not quite! Try again.",
+invalid:"Please enter a valid answer.",
+empty:"Enter an answer first.",
+lesson:" groups containing objects each make objects.",
+
+beginner:"🌱 Beginner Explorer",
+collector:"⭐ Star Collector",
+adventurer:"🚀 Math Adventurer",
+master:"🏆 Multiplication Master",
+
+unlocked:"Unlocked",
+locked:"Locked"
+
+},
+
+ar: {
+
+home:"🏠 عالم التعلم",
+visual:"🧊 الرياضيات ثلاثية الأبعاد",
+tables:"🔢 جداول الضرب",
+game:"🎮 ألعاب الرياضيات",
+progress:"🏆 تقدمي",
+
+welcome:"مرحباً أيها المستكشف! 🚀",
+welcomeText:"اكتشف الرياضيات من خلال اللعب والخيال.",
+
+questions:"الأسئلة المجابة",
+correct:"الإجابات الصحيحة",
+stars:"النجوم المكتسبة",
+
+adventure:"🌟 ابدأ مغامرتك",
+explore:"استكشف العالم ثلاثي الأبعاد",
+learnTables:"تعلم جداول الضرب",
+play:"العب",
+myProgress:"تقدمي",
+
+visualTitle:"🧊 الضرب بالصور ثلاثية الأبعاد",
+visualText:"اكتشف كيف تكوّن المجموعات المتساوية عملية الضرب.",
+
+groups:"عدد المجموعات",
+each:"العناصر في كل مجموعة",
+drag:"اسحب المشهد لتدوير المجسمات.",
+
+tableTitle:"🔢 جداول الضرب",
+chooseTable:"اختر جدول الضرب:",
+
+gameTitle:"🎮 تحدي الضرب",
+solve:"حل مسألة الضرب!",
+
+check:"تحقق من الإجابة",
+next:"السؤال التالي",
+score:"⭐ نتيجتك",
+
+progressTitle:"🏆 تقدم التعلم",
+accuracy:"نسبة الإجابات الصحيحة",
+achievements:"الإنجازات",
+reset:"إعادة تعيين التقدم",
+
+correctMessage:"🎉 ممتاز! إجابة صحيحة!",
+wrongMessage:"ليس تماماً! حاول مرة أخرى.",
+invalid:"من فضلك أدخل إجابة صحيحة.",
+empty:"أدخل الإجابة أولاً.",
+lesson:" مجموعات، في كل منها عدد من العناصر، تساوي هذا العدد.",
+
+beginner:"🌱 مستكشف مبتدئ",
+collector:"⭐ جامع النجوم",
+adventurer:"🚀 مغامر الرياضيات",
+master:"🏆 بطل جداول الضرب",
+
+unlocked:"تم فتح الإنجاز",
+locked:"مغلق"
+
+}
+
+};
+
+let language = "en";
+
+function t(key) {
+    return translations[language][key] || key;
+}
+
+function applyLanguage() {
+
+    document.documentElement.lang = language;
+
+    document.documentElement.dir =
+        language === "ar" ? "rtl" : "ltr";
+
+    document.body.classList.toggle(
+        "rtl",
+        language === "ar"
+    );
+
+    document.querySelectorAll("[data-i18n]")
+        .forEach(element => {
+
+            element.textContent =
+                t(element.dataset.i18n);
+
+        });
+
+    document.getElementById("languageButton")
+        .textContent =
+            language === "en" ? "العربية" : "English";
+
+    updateWorld();
+    showTable();
+    updateQuestionText();
+    updateProgress();
+
+}
+
+document.getElementById("languageButton")
+    .addEventListener("click", () => {
+
+        language = language === "en" ? "ar" : "en";
+
+        applyLanguage();
+
+    });
+
+
+// ==========================================
+// NAVIGATION
+// ==========================================
+
+window.showPage = function(id) {
+
+    document.querySelectorAll(".page")
+        .forEach(p => p.classList.remove("active"));
+
+    document.querySelectorAll(".nav-button")
+        .forEach(b => b.classList.remove("active"));
+
+    document.getElementById(id)
+        .classList.add("active");
+
+    document.querySelector(
+        `[data-page="${id}"]`
+    ).classList.add("active");
+
+    if(id === "visual") {
+        setTimeout(resizeWorld, 50);
+    }
+
+};
+
+
+// ==========================================
+// SAVE DATA
+// ==========================================
+
+const defaultStats = {
+    questions:0,
+    correct:0,
+    stars:0
+};
+
+let stats;
+
+try {
+
+    stats = {
+        ...defaultStats,
+        ...JSON.parse(
+            localStorage.getItem("mw-data") || "{}"
+        )
+    };
+
+} catch {
+
+    stats = {...defaultStats};
+
+}
+
+function save() {
+
+    localStorage.setItem(
+        "mw-data",
+        JSON.stringify(stats)
+    );
+
+    updateProgress();
+
+}
+
+function updateProgress() {
+
+    const accuracy = stats.questions
+        ? Math.round(
+            stats.correct / stats.questions * 100
+        )
+        : 0;
+
+    document.getElementById("headerStars")
+        .textContent = stats.stars;
+
+    document.getElementById("homeStars")
+        .textContent = stats.stars;
+
+    document.getElementById("homeQuestions")
+        .textContent = stats.questions;
+
+    document.getElementById("homeCorrect")
+        .textContent = stats.correct;
+
+    document.getElementById("progressQuestions")
+        .textContent = stats.questions;
+
+    document.getElementById("progressCorrect")
+        .textContent = stats.correct;
+
+    document.getElementById("progressStars")
+        .textContent = stats.stars;
+
+    document.getElementById("score")
+        .textContent = stats.stars;
+
+    document.getElementById("accuracyBar")
+        .style.width = accuracy + "%";
+
+    document.getElementById("accuracyText")
+        .textContent = accuracy + "%";
+
+    const achievements = [
+
+        ["beginner",stats.questions >= 1],
+
+        ["collector",stats.stars >= 10],
+
+        ["adventurer",stats.correct >= 25],
+
+        ["master",stats.correct >= 100]
+
+    ];
+
+    document.getElementById("achievementList")
+        .innerHTML = achievements.map(([key,ok]) => {
+
+            return `
+                <div class="achievement">
+                    ${ok ? "✅" : "🔒"} ${t(key)}
+                    <span style="float:inline-end">
+                        ${ok ? t("unlocked") : t("locked")}
+                    </span>
+                </div>
+            `;
+
+        }).join("");
+
+}
+
+document.getElementById("resetButton")
+    .addEventListener("click", () => {
+
+        if(!confirm(
+            language === "ar"
+                ? "هل تريد إعادة تعيين جميع البيانات؟"
+                : "Reset all learning progress?"
+        )) return;
+
+        stats = {...defaultStats};
+
+        save();
+
+    });
+
+
+// ==========================================
+// MULTIPLICATION TABLES
+// ==========================================
+
+const tableSelect =
+    document.getElementById("tableSelect");
+
+for(let i=1;i<=12;i++) {
+
+    tableSelect.add(new Option(
+        language === "ar"
+            ? "جدول " + i
+            : "Table " + i,
+        i
+    ));
+
+}
+
+function showTable() {
+
+    const n = Number(tableSelect.value);
+
+    document.getElementById("tableOutput")
+        .innerHTML = Array.from(
+            {length:12},
+            (_,i) => {
+
+                return `
+                    <div class="table-item">
+                        ${n} × ${i+1} = ${n*(i+1)}
+                    </div>
+                `;
+
+            }
+        ).join("");
+
+}
+
+tableSelect.addEventListener(
+    "change",
+    showTable
+);
+
+
+// ==========================================
+// THREE.JS WORLD
+// ==========================================
+
+const world = document.getElementById("world");
+
+const scene = new THREE.Scene();
+
+scene.background =
+    new THREE.Color(0x203b62);
+
+const camera = new THREE.PerspectiveCamera(
+    45,
+    1,
+    0.1,
+    100
+);
+
+camera.position.set(9,8,15);
+
+const renderer = new THREE.WebGLRenderer({
+    antialias:true
+});
+
+renderer.setPixelRatio(
+    Math.min(devicePixelRatio,2)
+);
+
+renderer.shadowMap.enabled = true;
+
+world.appendChild(renderer.domElement);
+
+
+// Lighting
+
+scene.add(
+    new THREE.HemisphereLight(
+        0xffffff,
+        0x526b91,
+        2
+    )
+);
+
+const light = new THREE.DirectionalLight(
+    0xffffff,
+    3
+);
+
+light.position.set(6,10,8);
+
+light.castShadow = true;
+
+scene.add(light);
+
+
+// Floor
+
+const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(50,50),
+    new THREE.MeshStandardMaterial({
+        color:0x142b49
+    })
+);
+
+floor.rotation.x = -Math.PI/2;
+
+floor.position.y = -0.5;
+
+scene.add(floor);
+
+
+// Multiplication groups
+
+const objects = new THREE.Group();
+
+scene.add(objects);
+
+const colors = [
+    0xff595e,
+    0xffca3a,
+    0x8ac926,
+    0x1982c4,
+    0x6a4c93,
+    0x00cec9,
+    0xff9f43,
+    0xf368e0,
+    0x74b9ff,
+    0xfd79a8,
+    0x55efc4,
+    0xa29bfe
+];
+
+function clearObjects() {
+
+    while(objects.children.length) {
+
+        const child = objects.children[0];
+
+        objects.remove(child);
+
+        child.traverse(item => {
+
+            item.geometry?.dispose();
+
+            if(item.material) {
+
+                if(Array.isArray(item.material)) {
+                    item.material.forEach(m => m.dispose());
+                } else {
+                    item.material.dispose();
+                }
+
+            }
+
+        });
+
+    }
+
+}
+
+
+function createObjects(a,b) {
+
+    clearObjects();
+
+    const geometry = new THREE.BoxGeometry(
+        0.65,0.65,0.65
+    );
+
+    for(let i=0;i<a;i++) {
+
+        const group = new THREE.Group();
+
+        const material =
+            new THREE.MeshStandardMaterial({
+                color:colors[i],
+                roughness:0.4
+            });
+
+        for(let j=0;j<b;j++) {
+
+            const cube = new THREE.Mesh(
+                geometry,
+                material
+            );
+
+            cube.position.set(
+                (j%5)*0.75-1.5,
+                Math.floor(j/5)*0.75,
+                0
+            );
+
+            cube.castShadow = true;
+
+            group.add(cube);
+
+        }
+
+        group.position.set(
+            (i%4-1.5)*2.8,
+            0,
+            Math.floor(i/4)*3
+        );
+
+        objects.add(group);
+
+    }
+
+    camera.position.set(
+        0,
+        Math.max(8,7+a*.25),
+        15
+    );
+
+    camera.lookAt(0,.5,0);
+
+}
+
+
+const groupSelect =
+    document.getElementById("groupSelect");
+
+const eachSelect =
+    document.getElementById("eachSelect");
+
+for(let i=1;i<=12;i++) {
+
+    groupSelect.add(new Option(i,i));
+
+    eachSelect.add(new Option(i,i));
+
+}
+
+groupSelect.value = 3;
+
+eachSelect.value = 4;
+
+
+function updateWorld() {
+
+    const a = Number(groupSelect.value);
+
+    const b = Number(eachSelect.value);
+
+    const total = a*b;
+
+    createObjects(a,b);
+
+    document.getElementById("equation")
+        .textContent = `${a} × ${b} = ${total}`;
+
+    document.getElementById("addition")
+        .textContent =
+            Array(a).fill(b).join(" + ") +
+            " = " + total;
+
+    document.getElementById("lesson")
+        .textContent =
+            language === "ar"
+                ? `${a} مجموعات، في كل مجموعة ${b} عناصر. المجموع ${total}.`
+                : `${a} groups of ${b} objects make ${total}.`;
+
+}
+
+document.getElementById("updateWorld")
+    .addEventListener("click",updateWorld);
+
+groupSelect.addEventListener("change",updateWorld);
+
+eachSelect.addEventListener("change",updateWorld);
+
+
+// ==========================================
+// DRAG ROTATION
+// ==========================================
+
+let dragging = false;
+
+let previousX = 0;
+
+renderer.domElement.addEventListener(
+    "pointerdown",
+    e => {
+
+        dragging = true;
+
+        previousX = e.clientX;
+
+        renderer.domElement.setPointerCapture(
+            e.pointerId
+        );
+
+    }
+);
+
+renderer.domElement.addEventListener(
+    "pointermove",
+    e => {
+
+        if(!dragging) return;
+
+        objects.rotation.y +=
+            (e.clientX-previousX)*0.01;
+
+        previousX = e.clientX;
+
+    }
+);
+
+renderer.domElement.addEventListener(
+    "pointerup",
+    () => dragging=false
+);
+
+renderer.domElement.addEventListener(
+    "pointercancel",
+    () => dragging=false
+);
+
+
+// ==========================================
+// RESIZE
+// ==========================================
+
+function resizeWorld() {
+
+    const width = world.clientWidth;
+
+    const height = world.clientHeight;
+
+    if(!width || !height) return;
+
+    camera.aspect = width/height;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(width,height);
+
+}
+
+const observer = new ResizeObserver(resizeWorld);
+
+observer.observe(world);
+
+window.addEventListener(
+    "resize",
+    resizeWorld
+);
+
+
+// ==========================================
+// ANIMATION LOOP
+// ==========================================
+
+let animationFrame;
+
+function animate() {
+
+    animationFrame =
+        requestAnimationFrame(animate);
+
+    objects.rotation.y += 0.0015;
+
+    renderer.render(scene,camera);
+
+}
+
+
+// ==========================================
+// MULTIPLICATION GAME
+// ==========================================
+
+let num1 = 3;
+
+let num2 = 4;
+
+let answered = false;
+
+function updateQuestionText() {
+
+    document.getElementById("question")
+        .textContent =
+            `${num1} × ${num2} = ?`;
+
+}
+
+function newQuestion() {
+
+    num1 = Math.floor(Math.random()*12)+1;
+
+    num2 = Math.floor(Math.random()*12)+1;
+
+    answered = false;
+
+    updateQuestionText();
+
+    document.getElementById("answer").value = "";
+
+    document.getElementById("feedback")
+        .textContent = "";
+
+}
+
+function checkAnswer() {
+
+    if(answered) return;
+
+    const input =
+        document.getElementById("answer");
+
+    if(input.value === "") {
+
+        document.getElementById("feedback")
+            .textContent = t("empty");
+
+        return;
+
+    }
+
+    const answer = Number(input.value);
+
+    if(!Number.isInteger(answer) || answer<0) {
+
+        document.getElementById("feedback")
+            .textContent = t("invalid");
+
+        return;
+
+    }
+
+    if(answer === num1*num2) {
+
+        stats.questions++;
+
+        stats.correct++;
+
+        stats.stars++;
+
+        answered = true;
+
+        document.getElementById("feedback")
+            .textContent = t("correctMessage");
+
+        save();
+
+    } else {
+
+        document.getElementById("feedback")
+            .textContent = t("wrongMessage");
+
+    }
+
+}
+
+document.getElementById("checkButton")
+    .addEventListener("click",checkAnswer);
+
+document.getElementById("nextButton")
+    .addEventListener("click",newQuestion);
+
+document.getElementById("answer")
+    .addEventListener("keydown",e => {
+
+        if(e.key === "Enter") checkAnswer();
+
+    });
+
+
+// ==========================================
+// START
+// ==========================================
+
+applyLanguage();
+
+updateWorld();
+
+showTable();
+
+newQuestion();
+
+resizeWorld();
+
+animate();
+
+window.addEventListener("pagehide", () => {
+
+    cancelAnimationFrame(animationFrame);
+
+    observer.disconnect();
+
+    renderer.dispose();
+
+    scene.traverse(item => {
+
+        item.geometry?.dispose();
+
+        if(item.material) {
+            item.material.dispose();
+        }
+
+    });
+
+});
+
+</script>
+
+</body>
+</html>
