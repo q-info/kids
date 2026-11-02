@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#10182d">
+    <meta name="description" content="An interactive 3D multiplication learning experience for children.">
+
+    <title>Multiplication World</title>
+
+    <link rel="stylesheet" href="style.css">
+
+	<script src="three.min.js"></script>
+
+    <!--script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+        }
+    }
+    </script-->
+</head>
+
+<body>
+
+<div class="app" id="app">
+
+    <header class="topbar">
+
+        <div class="brand">
+            🌍 <span data-i18n="title">Multiplication World</span>
+        </div>
+
+        <div class="top-actions">
+
+            <div class="stars">
+                ⭐ <span id="starCount">0</span>
+            </div>
+
+            <button class="language-button" id="languageButton">
+                🌐 العربية
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <div class="layout">
+
+        <aside class="sidebar">
+
+            <div class="profile-card">
+                <div class="avatar">🧑‍🚀</div>
+                <div>
+                    <strong id="studentName">Math Explorer</strong>
+                    <small id="studentLevel">Explorer</small>
+                </div>
+            </div>
+
+            <nav id="navigation">
+
+                <button class="nav-item active" data-page="home">
+                    🏠 <span data-i18n="home">Home</span>
+                </button>
+
+                <button class="nav-item" data-page="classroom">
+                    🏫 <span data-i18n="classroom">Classroom</span>
+                </button>
+
+                <button class="nav-item" data-page="lab">
+                    🧊 <span data-i18n="lab">3D Laboratory</span>
+                </button>
+
+                <button class="nav-item" data-page="galaxy">
+                    🌌 <span data-i18n="galaxy">Math Galaxy</span>
+                </button>
+
+                <button class="nav-item" data-page="tables">
+                    🔢 <span data-i18n="tables">Times Tables</span>
+                </button>
+
+                <button class="nav-item" data-page="games">
+                    🎮 <span data-i18n="games">Games</span>
+                </button>
+
+                <button class="nav-item" data-page="progress">
+                    🏆 <span data-i18n="progress">Progress</span>
+                </button>
+
+            </nav>
+
+            <div class="sidebar-footer">
+                <span>✨ Keep learning!</span>
+            </div>
+
+        </aside>
+
+
+        <main class="content">
+
+
+            <!-- HOME -->
+
+            <section class="page active" id="home">
+
+                <div class="hero">
+
+                    <div>
+                        <span class="eyebrow">YOUR MATH ADVENTURE</span>
+
+                        <h1 data-i18n="welcome">
+                            Welcome, Math Explorer!
+                        </h1>
+
+                        <p data-i18n="welcomeText">
+                            Discover the exciting world of multiplication.
+                        </p>
+
+                        <button class="primary-button" data-go="classroom">
+                            🚀 Start Learning
+                        </button>
+                    </div>
+
+                    <div class="hero-character">
+                        🧑‍🚀
+                    </div>
+
+                </div>
+
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <span>📚</span>
+                        <p data-i18n="questions">Questions</p>
+                        <strong id="totalQuestions">0</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>🎯</span>
+                        <p data-i18n="correct">Correct Answers</p>
+                        <strong id="totalCorrect">0</strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>⭐</span>
+                        <p data-i18n="stars">Stars Earned</p>
+                        <strong id="totalStars">0</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="section-heading">
+                    <h2>🗺️ Your Learning World</h2>
+                </div>
+
+
+                <div class="world-grid">
+
+                    <article class="world-card classroom-card" data-go="classroom">
+                        <div class="world-icon">🏫</div>
+                        <h3>Virtual Classroom</h3>
+                        <p>Learn multiplication step by step.</p>
+                        <span>Explore →</span>
+                    </article>
+
+                    <article class="world-card lab-card" data-go="lab">
+                        <div class="world-icon">🧊</div>
+                        <h3>3D Laboratory</h3>
+                        <p>Discover multiplication in 3D.</p>
+                        <span>Explore →</span>
+                    </article>
+
+                    <article class="world-card galaxy-card" data-go="galaxy">
+                        <div class="world-icon">🌌</div>
+                        <h3>Math Galaxy</h3>
+                        <p>Travel through number worlds.</p>
+                        <span>Explore →</span>
+                    </article>
+
+                    <article class="world-card games-card" data-go="games">
+                        <div class="world-icon">🎮</div>
+                        <h3>Game Zone</h3>
+                        <p>Practice through fun challenges.</p>
+                        <span>Play →</span>
+                    </article>
+
+                </div>
+
+            </section>
+
+
+            <!-- CLASSROOM -->
+
+            <section class="page" id="classroom">
+
+                <div class="page-heading">
+                    <span>🏫</span>
+                    <div>
+                        <h1>Virtual Classroom</h1>
+                        <p>Let's learn multiplication together!</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+
+                    <h2>What is multiplication?</h2>
+
+                    <p>
+                        Multiplication is a quick way of adding equal groups.
+                    </p>
+
+                    <div class="lesson-visual">
+                        <div class="lesson-groups">
+                            <span>🍎 🍎 🍎</span>
+                            <span>🍎 🍎 🍎</span>
+                            <span>🍎 🍎 🍎</span>
+                        </div>
+
+                        <div class="lesson-equation">
+                            3 × 3 = 9
+                        </div>
+                    </div>
+
+                    <p>
+                        Three groups, with three apples in each group,
+                        give us nine apples!
+                    </p>
+
+                    <button class="primary-button" data-go="lab">
+                        Try it in 3D →
+                    </button>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <h2>Choose your learning level</h2>
+
+                    <div class="level-grid">
+
+                        <button class="level-option" data-level="beginner">
+                            🌱
+                            <strong>Explorer</strong>
+                            <small>Ages 5–7</small>
+                        </button>
+
+                        <button class="level-option" data-level="intermediate">
+                            🚀
+                            <strong>Adventurer</strong>
+                            <small>Ages 8–10</small>
+                        </button>
+
+                        <button class="level-option" data-level="advanced">
+                            🏆
+                            <strong>Master</strong>
+                            <small>Ages 11–12</small>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- 3D LAB -->
+
+            <section class="page" id="lab">
+
+                <div class="page-heading">
+                    <span>🧊</span>
+                    <div>
+                        <h1>3D Mathematics Laboratory</h1>
+                        <p>Explore multiplication with interactive cubes.</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+
+                    <div class="scene-container" id="labScene"></div>
+
+                    <div class="lab-controls">
+
+                        <label>
+                            Groups
+
+                            <input
+                                type="range"
+                                id="groupRange"
+                                min="1"
+                                max="10"
+                                value="3"
+                            >
+
+                            <strong id="groupValue">3</strong>
+                        </label>
+
+                        <label>
+                            Objects per group
+
+                            <input
+                                type="range"
+                                id="objectRange"
+                                min="1"
+                                max="10"
+                                value="4"
+                            >
+
+                            <strong id="objectValue">4</strong>
+                        </label>
+
+                    </div>
+
+                    <div class="equation-display" id="labEquation">
+                        3 × 4 = 12
+                    </div>
+
+                    <p class="center" id="labExplanation">
+                        4 + 4 + 4 = 12
+                    </p>
+
+                    <p class="hint">
+                        💡 Drag the scene to rotate the 3D objects.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- GALAXY -->
+
+            <section class="page" id="galaxy">
+
+                <div class="page-heading">
+                    <span>🌌</span>
+                    <div>
+                        <h1>Multiplication Galaxy</h1>
+                        <p>Explore the universe of numbers!</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+
+                    <div class="galaxy-scene" id="galaxyScene"></div>
+
+                    <h2>Choose your destination</h2>
+
+                    <div class="planet-grid">
+
+                        <button data-table="2">🪐 Planet 2</button>
+                        <button data-table="3">🔵 Planet 3</button>
+                        <button data-table="4">🟣 Planet 4</button>
+                        <button data-table="5">🟢 Planet 5</button>
+                        <button data-table="6">🟡 Planet 6</button>
+                        <button data-table="7">🔴 Planet 7</button>
+
+                    </div>
+
+                    <div id="planetMessage" class="planet-message">
+                        Select a planet to explore its multiplication table.
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- TABLES -->
+
+            <section class="page" id="tables">
+
+                <div class="page-heading">
+                    <span>🔢</span>
+                    <div>
+                        <h1>Multiplication Tables</h1>
+                        <p>Master your tables from 1 to 12.</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+
+                    <label for="tableSelect">Choose a multiplication table</label>
+
+                    <select id="tableSelect">
+
+                        <option value="1">Table of 1</option>
+                        <option value="2">Table of 2</option>
+                        <option value="3">Table of 3</option>
+                        <option value="4">Table of 4</option>
+                        <option value="5">Table of 5</option>
+                        <option value="6">Table of 6</option>
+                        <option value="7">Table of 7</option>
+                        <option value="8">Table of 8</option>
+                        <option value="9">Table of 9</option>
+                        <option value="10">Table of 10</option>
+                        <option value="11">Table of 11</option>
+                        <option value="12">Table of 12</option>
+
+                    </select>
+
+                    <div class="table-grid" id="tableGrid"></div>
+
+                </div>
+
+            </section>
+
+
+            <!-- GAMES -->
+
+            <section class="page" id="games">
+
+                <div class="page-heading">
+                    <span>🎮</span>
+                    <div>
+                        <h1>Math Game Zone</h1>
+                        <p>Learn, play and earn stars!</p>
+                    </div>
+                </div>
+
+                <div class="panel quiz-panel">
+
+                    <div class="quiz-character">🤖</div>
+
+                    <h2>Multiplication Challenge</h2>
+
+                    <div class="quiz-equation" id="quizQuestion">
+                        3 × 4 = ?
+                    </div>
+
+                    <input
+                        type="number"
+                        id="quizAnswer"
+                        placeholder="Your answer"
+                    >
+
+                    <button class="primary-button" id="checkAnswer">
+                        Check Answer
+                    </button>
+
+                    <button class="secondary-button" id="nextQuestion">
+                        Next Question
+                    </button>
+
+                    <div id="quizFeedback" class="quiz-feedback"></div>
+
+                </div>
+
+            </section>
+
+
+            <!-- PROGRESS -->
+
+            <section class="page" id="progress">
+
+                <div class="page-heading">
+                    <span>🏆</span>
+                    <div>
+                        <h1>My Achievements</h1>
+                        <p>Look how far you've come!</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+
+                    <h2>Learning Accuracy</h2>
+
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+
+                    <h2 id="accuracyValue">0%</h2>
+
+                </div>
+
+                <div class="panel">
+
+                    <h2>🏅 Achievement Collection</h2>
+
+                    <div class="achievement-list" id="achievementList"></div>
+
+                </div>
+
+                <div class="panel">
+
+                    <h2>Reset Progress</h2>
+
+                    <button class="danger-button" id="resetProgress">
+                        Reset My Progress
+                    </button>
+
+                </div>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+</div>
+
+<script type="module" src="app10.js"></script>
+
+</body>
+</html>
